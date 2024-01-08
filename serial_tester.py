@@ -5,37 +5,22 @@ import time
 BASE_BARCODE_DATA = b'123456789012'  # Replace with your valid barcode data
 
 # Define possible endings for the barcode: carriage return, newline, or none
-BARCODE_ENDINGS = [b'\r', b'\n', b'\r\n', b'']  # CR, LF, CRLF, None
+# CR common for POS to signify end of data entry, mimicing the enter key on a kb
+# NL used for multi-line input or by unix systems
+# CRNL common in windows-based systems as a standard end-of-line marker
+BARCODE_ENDINGS = [b'\r', b'\n', b'\r\n']  # CR, NL, CRNL
 
-# Define all possible configurations with most common baud rates at the front
-BAUDRATES = [
-    9600, 19200, 38400, 57600, 115200, 300, 600, 1200, 2400, 4800, 14400, 28800,
-    230400, 460800, 921600, 1000000, 1152000, 1500000, 2000000, 2500000, 
-    3000000, 3500000, 4000000
-]
+# Common baud rates
+BAUDRATES = [9600, 115200, 19200, 38400, 57600, 230400, 460800, 921600]
 
-# Standard parity options
-PARITIES = [
-    serial.PARITY_NONE,  # Most common
-    serial.PARITY_EVEN,  # Common
-    serial.PARITY_ODD,   # Common
-    serial.PARITY_MARK,  # Less common
-    serial.PARITY_SPACE  # Less common
-]
+# Standard parity options - Excluding Mark and Space
+PARITIES = [serial.PARITY_NONE, serial.PARITY_EVEN, serial.PARITY_ODD]
 
-# Data bits, typically between 5 and 8
-DATABITS = [
-    8,  # Most common
-    7,  # Less common
-    6,  # Rare
-    5   # Rare
-]
+# Data bits - Focusing on 7 and 8
+DATABITS = [8, 7]
 
-# Stop bits configurations without 1.5
-STOPBITS = [
-    serial.STOPBITS_ONE,           # Most common
-    serial.STOPBITS_TWO            # Less common
-]
+# Stop bits - Unchanged as only two options were there initially
+STOPBITS = [serial.STOPBITS_ONE, serial.STOPBITS_TWO]
 
 # Keep track of all tested configurations
 tested_configurations = []
