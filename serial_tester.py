@@ -28,11 +28,17 @@ tested_configurations = []
 # Hardcoded to use /dev/ttyUSB0
 PORT = "/dev/ttyUSB0"
 
+# ANSI color codes
+BLUE = '\033[94m'  # Blue text
+RED = '\033[91m'   # Red text
+GREEN = '\033[92m' # Green text
+ENDC = '\033[0m'   # Reset to default color
+
 def test_configuration(port, baudrate, parity, databits, stopbits, ending):
     try:
         # Get printable representation of barcode ending
         ending_str = repr(ending.decode('utf-8'))
-        configuration = f"Port={port}, Baudrate={baudrate}, Parity={parity}, Data bits={databits}, Stop bits={stopbits}, Ending={ending_str}"
+        configuration = f"Port={BLUE}{port}{ENDC}, Baud Rate={BLUE}{baudrate}{ENDC}, Parity={BLUE}{parity}{ENDC}, Data bits={BLUE}{databits}{ENDC}, Stop bits={BLUE}{stopbits}{ENDC}, Ending={BLUE}{ending_str}{ENDC}"
 
         # Configure serial connection with a timeout
         with serial.Serial(port=port, baudrate=baudrate, parity=parity,
@@ -41,7 +47,7 @@ def test_configuration(port, baudrate, parity, databits, stopbits, ending):
             # Combine base barcode data with the ending
             barcode_data = BASE_BARCODE_DATA + ending
             
-            print(f"Testing config: {configuration}")
+            print(f"\nTesting config: {configuration}\n\n")
 
             ser.write(barcode_data)
             
@@ -51,7 +57,7 @@ def test_configuration(port, baudrate, parity, databits, stopbits, ending):
             tested_configurations.append(configuration)
 
     except Exception as e:
-        print(f"Configuration {configuration} failed with error: {e}")
+        print(f"\nConfiguration {configuration}\nfailed with error: {RED}{e}{ENDC}\n")
 
 def main():
     for baudrate in BAUDRATES:
@@ -62,13 +68,13 @@ def main():
                         test_configuration(PORT, baudrate, parity, databits, stopbits, ending)
                         
                         # User input to continue to the next configuration
-                        proceed = input("Configuration tested. Press Enter to continue to the next one (or 'N' to stop): ").strip().upper()
+                        proceed = input(f"Configuration tested. Press {BLUE}Enter{ENDC} to continue (or {RED}N{ENDC} to stop): ").strip().upper()
                         if proceed == 'N':
                             print("\nExiting early. Tested configurations:")
                             for config in tested_configurations:
                                 print(config)
                             return
-    print("Testing completed.")
+    print(f"{GREEN}Testing completed.")
 
 if __name__ == "__main__":
     main()
