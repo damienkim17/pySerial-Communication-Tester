@@ -26,43 +26,49 @@ STOPBITS = [serial.STOPBITS_ONE, serial.STOPBITS_TWO]
 tested_configurations = []
 
 # Hardcoded to use /dev/ttyUSB0
-port = "/dev/ttyUSB0"
+PORT = "/dev/ttyUSB0"
 
-# Test configurations for only /dev/ttyUSB0
-for baudrate in BAUDRATES:
-    for parity in PARITIES:
-        for databits in DATABITS:
-            for stopbits in STOPBITS:
-                for ending in BARCODE_ENDINGS:
-                    # Combine base barcode data with the ending
-                    barcode_data = BASE_BARCODE_DATA + ending
-                    configuration = f"Port={port}, Baudrate={baudrate}, Parity={parity}, Data bits={databits}, Stop bits={stopbits}, Ending={ending}"
-                    tested_configurations.append(configuration)
-                    
-                    try:
-                        # Configure serial connection with a timeout
-                        with serial.Serial(port=port, baudrate=baudrate, parity=parity,
-                                           stopbits=stopbits, bytesize=databits, timeout=1) as ser:
+def test_configuration(port, baudrate, parity, databits, stopbits, ending):
+    try:
+        # Get printable representation of barcode ending
+        ending_str = repr(ending.decode('utf-8'))
+        configuration = f"Port={port}, Baudrate={baudrate}, Parity={parity}, Data bits={databits}, Stop bits={stopbits}, Ending={ending_str}"
 
-                            # Print the current configuration being tested
-                            print(f"Testing config: {configuration}")
-                            
-                            # Send the barcode data with specified ending
-                            ser.write(barcode_data)
-                            
-                            # Wait briefly for the POS to possibly process the data
-                            time.sleep(1)
+        # Configure serial connection with a timeout
+        with serial.Serial(port=port, baudrate=baudrate, parity=parity,
+                           stopbits=stopbits, bytesize=databits, timeout=1) as ser:
 
-                    except Exception as e:
-                        # Print out any errors encountered during the attempt
-                        print(f"Failed with {e}")
-                    
-                    # User input to continue to the next configuration
-                    proceed = input("Configuration tested. Press Enter to continue to the next one (or 'N' to stop): ").strip().upper()
-                    if proceed == 'N':
-                        print("\nExiting early. Tested configurations:")
-                        for config in tested_configurations:
-                            print(config)
-                        exit()  # Exit the script
+            # Combine base barcode data with the ending
+            barcode_data = BASE_BARCODE_DATA + ending
+            
+            print(f"Testing config: {configuration}")
 
-print("Testing completed.")
+            ser.write(barcode_data)
+            
+            # Wait briefly for processing
+            time.sleep(1)
+
+            tested_configurations.append(configuration)
+
+    except Exception as e:
+        print(f"Configuration {configuration} failed with error: {e}")
+
+def main():
+    for baudrate in BAUDRATES:
+        for parity in PARITIES:
+            for databits in DATABITS:
+                for stopbits in STOPBITS:
+                    for ending in BARCODE_ENDINGS:
+                        test_configuration(PORT, baudrate, parity, databits, stopbits, ending)
+                        
+                        # User input to continue to the next configuration
+                        proceed = input("Configuration tested. Press Enter to continue to the next one (or 'N' to stop): ").strip().upper()
+                        if proceed == 'N':
+                            print("\nExiting early. Tested configurations:")
+                            for config in tested_configurations:
+                                print(config)
+                            return
+    print("Testing completed.")
+
+if __name__ == "__main__":
+    main()
